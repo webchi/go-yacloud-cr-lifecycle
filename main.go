@@ -75,16 +75,11 @@ func createPolicy(ctx context.Context, sdk *ycsdk.SDK, RepositoryId_In string) (
 				ExpirePeriod: durationpb.New(168 * time.Hour),
 			},
 			{
-				Description:  "clear feature-* images",
-				TagRegexp:    "feature-.*",
+				Description:  "remove all older than month",
+				TagRegexp:    ".*",
 				Untagged:     false,
 				ExpirePeriod: durationpb.New(720 * time.Hour),
-			},
-			{
-				Description:  "clear release-* images",
-				TagRegexp:    "release-.*",
-				Untagged:     false,
-				ExpirePeriod: durationpb.New(720 * time.Hour),
+				RetainedTop:  5,
 			},
 		},
 	})
