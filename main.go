@@ -51,7 +51,7 @@ func getListDocker(ctx context.Context, sdk *ycsdk.SDK) (string, error) {
 		FolderId: os.Getenv("YANDEX_FOLDER_ID"),
 	})
 	for _, v := range listDocker.GetRepositories() {
-		//fmt.Printf("Repo %v ID %v\n", i, v)
+		fmt.Printf("Repo %v\n", v)
 		parts := strings.Split(v.String(), ":")
 		//fmt.Println(parts[2])
 		data := strings.Replace(parts[2], "\"", "", 2)
@@ -63,8 +63,6 @@ func getListDocker(ctx context.Context, sdk *ycsdk.SDK) (string, error) {
 }
 
 func createPolicy(ctx context.Context, sdk *ycsdk.SDK, RepositoryId_In string) (string, error) {
-	fmt.Println(RepositoryId_In)
-
 	createPolicy, err := sdk.ContainerRegistry().LifecyclePolicy().Create(ctx, &containerregistry.CreateLifecyclePolicyRequest{
 		RepositoryId: RepositoryId_In,
 		Name:         "delete",
