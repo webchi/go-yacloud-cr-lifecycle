@@ -19,11 +19,31 @@ import (
 	ycsdk "github.com/yandex-cloud/go-sdk"
 )
 
+func main() {
+	checkEnv("YANDEX_OAUTH_TOKEN")
+	checkEnv("YANDEX_FOLDER_ID")
+
+	token := os.Getenv("YANDEX_OAUTH_TOKEN")
+	ctx := context.Background()
+	sdk, err := ycsdk.Build(ctx, ycsdk.Config{
+		Credentials: ycsdk.OAuthToken(token),
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	getListDocker(ctx, sdk)
+	//dockerList, _ := getListDocker(ctx, sdk)
+
+	//list , err := createPolicy(ctx,sdk)
+	//fmt.Println(dockerList)
+	//fmt.Println(list,err)
+}
+
 func checkEnv(key string) {
 	_, ok := os.LookupEnv(key)
 	if !ok {
 		fmt.Printf("%s not set\n", key)
-	} 
+	}
 }
 
 func getListDocker(ctx context.Context, sdk *ycsdk.SDK) (string, error) {
@@ -72,24 +92,4 @@ func createPolicy(ctx context.Context, sdk *ycsdk.SDK, RepositoryId_In string) (
 	})
 	fmt.Println(err)
 	return createPolicy.String(), err
-}
-
-func main() {
-	checkEnv("YANDEX_OAUTH_TOKEN")
-	checkEnv("YANDEX_FOLDER_ID")
-
-	token := os.Getenv("YANDEX_OAUTH_TOKEN")
-	ctx := context.Background()
-	sdk, err := ycsdk.Build(ctx, ycsdk.Config{
-		Credentials: ycsdk.OAuthToken(token),
-	})
-	if err != nil {
-		log.Fatal(err)
-	}
-	getListDocker(ctx, sdk)
-	//dockerList, _ := getListDocker(ctx, sdk)
-
-	//list , err := createPolicy(ctx,sdk)
-	//fmt.Println(dockerList)
-	//fmt.Println(list,err)
 }
