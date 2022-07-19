@@ -5,7 +5,7 @@
 
 ````bash
 YANDEX_FOLDER_ID
-YANDEX_QAUTH_TOCKEN
+YANDEX_OAUTH_TOKEN
 ````
 
 ## Проверка работы приложения 
