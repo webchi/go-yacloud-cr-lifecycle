@@ -44,7 +44,17 @@ func getListDocker(ctx context.Context, sdk *ycsdk.SDK) (string, error) {
 		parts := strings.Split(v.String(), ":")
 		data := strings.Replace(parts[2], "\"", "", 2)
 
-		_, err := createPolicy(ctx, sdk, data)
+		listPolicies, err := sdk.ContainerRegistry().LifecyclePolicy().List(ctx, &containerregistry.ListLifecyclePoliciesRequest{
+			Id: &containerregistry.ListLifecyclePoliciesRequest_RepositoryId{
+				RepositoryId: data,
+			},	
+		})
+
+		for _, z := range listPolicies.GetLifecyclePolicies() {
+			lumber.Info("Lifecycle", z)			
+		}
+
+		_, err = createPolicy(ctx, sdk, data)
 		if err != nil {
 			lumber.ErrorMsg(err)
 		} else {
