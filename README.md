@@ -1,5 +1,5 @@
-# Серсис который устанавливает политики управления Docker Regitry 
-
+# Yandex Container Registry Lifecycle Tool
+Инструмент обхода списка container registry и назначения [политик жизненного цикла](https://cloud.yandex.ru/docs/container-registry/operations/lifecycle-policy/lifecycle-policy-create) в промышленных масштабах
 
 ## Список необходимых переменных окружения 
 
