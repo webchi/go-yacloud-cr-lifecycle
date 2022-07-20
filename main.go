@@ -1,10 +1,5 @@
 package main
 
-/*
-yc container repository list
-yc container repository lifecycle-policy list --repository-name crpbcv0kq3k8f2813aha/admin
-*/
-
 import (
 	"context"
 	"fmt"
@@ -32,11 +27,6 @@ func main() {
 		log.Fatal(err)
 	}
 	getListDocker(ctx, sdk)
-	//dockerList, _ := getListDocker(ctx, sdk)
-
-	//list , err := createPolicy(ctx,sdk)
-	//fmt.Println(dockerList)
-	//fmt.Println(list,err)
 }
 
 func checkEnv(key string) {
@@ -53,12 +43,9 @@ func getListDocker(ctx context.Context, sdk *ycsdk.SDK) (string, error) {
 	for _, v := range listDocker.GetRepositories() {
 		fmt.Printf("Repo %v\n", v)
 		parts := strings.Split(v.String(), ":")
-		//fmt.Println(parts[2])
 		data := strings.Replace(parts[2], "\"", "", 2)
-		//fmt.Println(data)
 		createPolicy(ctx, sdk, data)
 	}
-	//fmt.Println(fix)
 	return listDocker.String(), err
 }
 
