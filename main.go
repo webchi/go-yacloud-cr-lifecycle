@@ -2,14 +2,13 @@ package main
 
 import (
 	"context"
-	"fmt"
-	"log"
 	"os"
 	"strings"
 
 	durationpb "google.golang.org/protobuf/types/known/durationpb"
 	"time"
 
+	"github.com/gleich/lumber/v2"
 	"github.com/yandex-cloud/go-genproto/yandex/cloud/containerregistry/v1"
 	ycsdk "github.com/yandex-cloud/go-sdk"
 )
@@ -24,7 +23,7 @@ func main() {
 		Credentials: ycsdk.OAuthToken(token),
 	})
 	if err != nil {
-		log.Fatal(err)
+		lumber.Fatal(err)
 	}
 	getListDocker(ctx, sdk)
 }
@@ -32,7 +31,7 @@ func main() {
 func checkEnv(key string) {
 	_, ok := os.LookupEnv(key)
 	if !ok {
-		fmt.Printf("%s not set\n", key)
+		lumber.FatalMsg("%s not set\n", key)
 	}
 }
 
@@ -41,10 +40,17 @@ func getListDocker(ctx context.Context, sdk *ycsdk.SDK) (string, error) {
 		FolderId: os.Getenv("YANDEX_FOLDER_ID"),
 	})
 	for _, v := range listDocker.GetRepositories() {
-		fmt.Printf("Repo %v\n", v)
+		lumber.Info("Repo", v)
 		parts := strings.Split(v.String(), ":")
 		data := strings.Replace(parts[2], "\"", "", 2)
-		createPolicy(ctx, sdk, data)
+
+		_, err := createPolicy(ctx, sdk, data)
+		if err != nil {
+			lumber.ErrorMsg(err)
+		} else {
+
+			lumber.Success("Lifecycle policy successfully applied!")
+		}
 	}
 	return listDocker.String(), err
 }
@@ -70,6 +76,6 @@ func createPolicy(ctx context.Context, sdk *ycsdk.SDK, RepositoryId_In string) (
 			},
 		},
 	})
-	fmt.Println(err)
+
 	return createPolicy.String(), err
 }
