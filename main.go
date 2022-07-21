@@ -92,7 +92,7 @@ func createPolicy(ctx context.Context, sdk *ycsdk.SDK, RepositoryId_In string) (
 }
 
 func updatePolicy(ctx context.Context, sdk *ycsdk.SDK, LifecyclePolicyId string) (string, error) {
-	createPolicy, err := sdk.ContainerRegistry().LifecyclePolicy().Update(ctx, &containerregistry.UpdateLifecyclePolicyRequest{
+	updatePolicy, err := sdk.ContainerRegistry().LifecyclePolicy().Update(ctx, &containerregistry.UpdateLifecyclePolicyRequest{
 		LifecyclePolicyId: LifecyclePolicyId,
 		Name:              "delete",
 		Description:       "delete",
@@ -100,7 +100,7 @@ func updatePolicy(ctx context.Context, sdk *ycsdk.SDK, LifecyclePolicyId string)
 		Rules:             PolicyRules,
 	})
 
-	return createPolicy.String(), err
+	return updatePolicy.String(), err
 }
 
 var PolicyRules = []*containerregistry.LifecycleRule{
