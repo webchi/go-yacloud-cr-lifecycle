@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"os"
-	"strings"
 
 	durationpb "google.golang.org/protobuf/types/known/durationpb"
 	"time"
@@ -41,25 +40,40 @@ func getListDocker(ctx context.Context, sdk *ycsdk.SDK) (string, error) {
 	})
 	for _, v := range listDocker.GetRepositories() {
 		lumber.Info("Repo", v)
-		parts := strings.Split(v.String(), ":")
-		data := strings.Replace(parts[2], "\"", "", 2)
 
+		// Получаем список политик для регистри
 		listPolicies, err := sdk.ContainerRegistry().LifecyclePolicy().List(ctx, &containerregistry.ListLifecyclePoliciesRequest{
 			Id: &containerregistry.ListLifecyclePoliciesRequest_RepositoryId{
-				RepositoryId: data,
-			},	
+				RepositoryId: v.Id,
+			},
 		})
 
-		for _, z := range listPolicies.GetLifecyclePolicies() {
-			lumber.Info("Lifecycle", z)			
-		}
+		policies := listPolicies.GetLifecyclePolicies()
+		// Если политик нет то создаём нужную
+		if len(policies) == 0 {
+			_, err = createPolicy(ctx, sdk, v.Id)
 
-		_, err = createPolicy(ctx, sdk, data)
-		if err != nil {
-			lumber.ErrorMsg(err)
+			if err != nil {
+				lumber.ErrorMsg(err)
+			} else {
+				lumber.Success("Lifecycle policy successfully created!")
+			}
 		} else {
+			// Если есть ...
+			for _, z := range listPolicies.GetLifecyclePolicies() {
 
-			lumber.Success("Lifecycle policy successfully applied!")
+				// То обновляем ту которая ACTIVE
+				if z.Status == 1 {
+					_, err = updatePolicy(ctx, sdk, z.Id)
+
+					if err != nil {
+						lumber.ErrorMsg(err)
+					} else {
+						lumber.Success("Lifecycle policy successfully updated!")
+					}
+				}
+
+			}
 		}
 	}
 	return listDocker.String(), err
@@ -71,40 +85,53 @@ func createPolicy(ctx context.Context, sdk *ycsdk.SDK, RepositoryId_In string) (
 		Name:         "delete",
 		Description:  "delete",
 		Status:       1,
-		Rules: []*containerregistry.LifecycleRule{
-			{
-				Description:  "clear untagged images",
-				Untagged:     true,
-				ExpirePeriod: durationpb.New(168 * time.Hour),
-			},
-			{
-				Description:  "remove all with tags",
-				TagRegexp:    ".*",
-				Untagged:     false,
-				ExpirePeriod: durationpb.New(4320 * time.Hour),
-				RetainedTop:  5,
-			},
-			{
-				Description:  "clear feature-* images",
-				TagRegexp:    "feature-.*",
-				Untagged:     false,
-				ExpirePeriod: durationpb.New(1440 * time.Hour),
-			},
-			{
-				Description:  "clear hotfix-* images",
-				TagRegexp:    "hotfix-.*",
-				Untagged:     false,
-				ExpirePeriod: durationpb.New(1440 * time.Hour),
-			},			
-			{
-				Description:  "clear release-* images",
-				TagRegexp:    "release-.*",
-				Untagged:     false,
-				ExpirePeriod: durationpb.New(4320 * time.Hour),
-			},
-
-		},
+		Rules:        PolicyRules,
 	})
 
 	return createPolicy.String(), err
+}
+
+func updatePolicy(ctx context.Context, sdk *ycsdk.SDK, LifecyclePolicyId string) (string, error) {
+	createPolicy, err := sdk.ContainerRegistry().LifecyclePolicy().Update(ctx, &containerregistry.UpdateLifecyclePolicyRequest{
+		LifecyclePolicyId: LifecyclePolicyId,
+		Name:              "delete",
+		Description:       "delete",
+		Status:            1,
+		Rules:             PolicyRules,
+	})
+
+	return createPolicy.String(), err
+}
+
+var PolicyRules = []*containerregistry.LifecycleRule{
+	{
+		Description:  "clear untagged images",
+		Untagged:     true,
+		ExpirePeriod: durationpb.New(168 * time.Hour),
+	},
+	{
+		Description:  "remove all with tags",
+		TagRegexp:    ".*",
+		Untagged:     false,
+		ExpirePeriod: durationpb.New(4320 * time.Hour),
+		RetainedTop:  5,
+	},
+	{
+		Description:  "clear feature-* images",
+		TagRegexp:    "feature-.*",
+		Untagged:     false,
+		ExpirePeriod: durationpb.New(1440 * time.Hour),
+	},
+	{
+		Description:  "clear hotfix-* images",
+		TagRegexp:    "hotfix-.*",
+		Untagged:     false,
+		ExpirePeriod: durationpb.New(1440 * time.Hour),
+	},
+	{
+		Description:  "clear release-* images",
+		TagRegexp:    "release-.*",
+		Untagged:     false,
+		ExpirePeriod: durationpb.New(4320 * time.Hour),
+	},
 }
